@@ -60,7 +60,7 @@ def lambda_handler(event, context):
         ]
     }
 
-    print(json.dumps(json_body))
+    print(f'TDx request JSON: {json.dumps(json_body)}')
     res = tdx_manager.make_custom_req(tdx_ticket_creation_endpoint, data=json.dumps(json_body))
 
     return {
@@ -94,22 +94,21 @@ class TdxManager:
     def __init__(self, constants_manager: ConstantsManager):
         self.__constants_manager = constants_manager
 
-        for parameter in self.__constants_manager.get_parameters(['tdx_api_url', 'tdx_user', 'tdx_password', 'tdx_token']):
+        for parameter in self.__constants_manager.get_parameters(['tdx_api_url', 'tdx_user', 'tdx_password',
+                                                                  'tdx_token']):
             self.__values['/'.join(parameter['Name'].split('/')[2:])] = parameter
 
     @backoff.on_predicate(backoff.constant, lambda x: x.status_code == 429, jitter=None, interval=60)
     @backoff.on_exception(backoff.expo, (requests.exceptions.Timeout, requests.exceptions.ConnectionError), max_tries=3)
     def authenticate(self):
-        res = requests.post(self.__values['tdx_api_url']['Value'] + self.tdx_auth_endpoint, headers=self.tdx_headers, data=json.dumps({'UserName':
+        res = requests.post(self.__values['tdx_api_url'][
+                                'Value'] + self.tdx_auth_endpoint, headers=self.tdx_headers, data=json.dumps({'UserName':
                                                                                                                   self.__values[
                                                                                                                       'tdx_user'][
                                                                                                                       'Value'], 'Password':
                                                                                                                   self.__values[
                                                                                                                       'tdx_password'][
                                                                                                                       'Value']}), timeout=self.__timeout)
-
-        print('Authenticate req response:')
-        print(res.text)
 
         if res.status_code == 200:
             self.__values['tdx_token']['Value'] = res.text
@@ -127,16 +126,15 @@ class TdxManager:
         if not self.__values['tdx_token']['Value']:
             self.authenticate()
 
-        print('api url value:')
-        print(self.__values['tdx_api_url']['Value'] + endpoint)
+        print(f"[make_custom_req] Api url value: {self.__values['tdx_api_url']['Value'] + endpoint}")
 
         res = requests.post(self.__values['tdx_api_url'][
                                 'Value'] + endpoint, headers=headers if headers != None else self.tdx_headers, data=data, timeout=self.__timeout)
 
-        print('Custom req response:')
-        print(res.text)
+        print(f'[make_custom_req] Custom req response: {res.text}')
 
         if res.status_code == 401:
+            # A 401 means out token is no longer valid, so clear the currently stored one.
             self.__values['tdx_token']['Value'] = ''
 
         return res
