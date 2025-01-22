@@ -29,11 +29,12 @@ def lambda_handler(event, context):
 
     print(f'Received package update event {webhook_event}')
 
-    if pkg_name in patch_exceptions:
-        print('Found exception for package. Exiting...')
-        return {
-            "statusCode": 202  # Accepted, but no action will be taken
-        }
+    for exception in patch_exceptions:
+        if exception in pkg_name:
+            print('Found exception for package. Exiting...')
+            return {
+                "statusCode": 202  # Accepted, but no action will be taken
+            }
 
     json_body = {
         "Title": f"[MacOS] {pkg_name}: {pkg_version} is available",
