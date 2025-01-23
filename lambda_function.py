@@ -30,7 +30,7 @@ def lambda_handler(event, context):
     print(f'Received package update event {webhook_event}')
 
     for exception in patch_exceptions:
-        if exception in pkg_name:
+        if exception.lower() in pkg_name.lower():
             print('Found exception for package. Exiting...')
             return {
                 "statusCode": 202  # Accepted, but no action will be taken
