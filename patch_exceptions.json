@@ -39,6 +39,7 @@
     "ChatGPT",
     "Cisco Webex Meetings",
     "Citrix Workspace",
+    "Claude Desktop",
     "DisplayLink Manager",
     "Discord",
     "Dropbox",
@@ -100,6 +101,7 @@
     "WhatsApp",
     "Wireshark",
     "Windows App",
-    "Zoom Client for Meetings"
+    "Zoom Client for Meetings",
+    "Zotero"
   ]
 }
