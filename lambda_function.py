@@ -3,15 +3,18 @@ import boto3
 import json
 import os
 import requests
-from botocore.exceptions import ClientError
 
+exceptions_url = "https://raw.githubusercontent.com/UWEC-SMC/jps_patch_relay/refs/heads/main/patch_exceptions.json"
 tdx_ticket_creation_endpoint = '/api/136/tickets?EnableNotifyReviewer=false&NotifyRequestor=false&NotifyResponsible=false&AllowRequestorCreation=false&applyDefaults=true'
 tdx_manager = None
 
-exceptions_file = open('patch_exceptions.json', 'r')
-patch_exceptions = json.loads(exceptions_file.read())['exceptions']
-exceptions_file.close()
+print(f'Retrieving patch exceptions from {exceptions_url}')
+req = requests.get(exceptions_url)
+if req.status_code != 200:
+    raise Exception(f'Failed to retrieve patch exceptions, HTTP code {req.status_code}')
 
+patch_exceptions = req.json()['exceptions']
+print(f'{len(patch_exceptions)} patch exceptions retrieved.')
 
 def lambda_handler(event, context):
     global tdx_manager
@@ -70,7 +73,6 @@ def lambda_handler(event, context):
 
 
 class ConstantsManager:
-
     def __init__(self, env):
         self.env = env
         self.__client = boto3.client('ssm')
